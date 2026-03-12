@@ -1,26 +1,38 @@
 package main
 
 import (
-	"fmt"
 	"log"
+	"os"
 
 	"github.com/ardatak1992/gator_blog_agg/internal/config"
 )
 
 func main() {
 
+	if len(os.Args) < 2 {
+		log.Fatal("Enter a command")
+	}
+
 	conf, err := config.Read()
 	if err != nil {
-		log.Fatalf("Can't create config: %s", err.Error())
+		log.Fatal("Error occuiered")
 	}
 
-	conf.SetUser("arda1222")
+	st := state{
+		&conf,
+	}
 
-	conf, err = config.Read()
+	commands := commands{
+		cmds: make(map[string]func(*state, command) error),
+	}
+
+	commands.register("login", handlerLogin)
+
+	enteredCommand := command{os.Args[1], os.Args[2:]}
+
+	err = commands.run(&st, enteredCommand)
 	if err != nil {
-		log.Fatalf("Can't create config: %s", err.Error())
+		log.Fatal(err)
 	}
-
-	fmt.Printf("dbURL: %s\nusername: %s\n", conf.DbURL, conf.CurrentUserName)
 
 }
